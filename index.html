@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Office temperature</title>
+    <script src="chart.js"></script>
+</head>
+<body>
+<canvas id="myChart" width="400" height="200"></canvas>
+<script>
+
+    async function fetchAndParseJson(endpoint) {
+        try {
+            // Make the GET request to the endpoint
+            const response = await fetch(endpoint, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            // Check if the response status is OK (200-299)
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Parse the JSON from the response
+            const jsonObject = await response.json();
+
+            // Return the parsed object
+            return jsonObject;
+        } catch (error) {
+            // Handle any errors that occur
+            console.error('Error fetching and parsing JSON:', error);
+            return null;
+        }
+    }
+
+
+
+    // Wait for the DOM to be fully loaded
+    document.addEventListener("DOMContentLoaded", function() {
+
+        let origin = window.location.href;
+        let data = fetchAndParseJson(origin + "/getHist" ).then((data)=>{
+            // Get the context of the canvas element we want to select
+            var ctx = document.getElementById('myChart').getContext('2d');
+
+            data.Temps = data.Temps.reverse();
+            data.Times = data.Times.reverse();
+
+            // Create a new Chart instance
+            var myChart = new Chart(ctx, {
+                type: 'line',  // Specify the chart type
+                data: {
+                    labels: data.Times,  // X-axis labels
+                    datasets: [{
+                        label: 'Temperature',  // Chart label
+                        data: data.Temps,  // Y-axis data points
+                        fill: false,  // Do not fill under the line
+                        borderColor: 'rgba(172,17,17,0.93)',  // Line color
+                        tension: 0.1  // Line tension (0 for straight lines)
+                    }]
+                },
+                options: {
+                    responsive: true,  // Make the chart responsive
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Temperature'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    })
+
+</script>
+</body>
+</html>
